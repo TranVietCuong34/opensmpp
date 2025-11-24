@@ -20,6 +20,22 @@ package org.smpp;
  */
 
 public class Data {
+
+	public static final short OPT_PAR_CUSTOM_TYPE = (short)0x1400;
+
+	public static final short OPT_PAR_CUSTOM_SENT_TIME = (short)0x1401;
+
+
+
+
+
+
+
+
+
+
+
+
 	public static final int SM_CONNID_LEN = 16;
 	public static final int SM_MSG_LEN = 254;
 	public static final int SM_SYSID_LEN = 16;

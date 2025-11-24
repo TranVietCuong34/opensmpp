@@ -37,7 +37,7 @@ public class SMPPSender {
 	/**
 	 * File with default settings for the application.
 	 */
-	static String propsFilePath = "./smppsender.cfg";
+	static String propsFilePath = "D:\\VIVAS\\BRN\\opensmpp\\client\\smppsender.cfg";
 
 	/**
 	 * This is the SMPP session used for communication with SMSC.
@@ -132,32 +132,35 @@ public class SMPPSender {
 	 */
 	public static void main(String args[]) {
 		// Parse the command line
-		String sender = null;
-		byte senderTon = (byte) 0;
-		byte senderNpi = (byte) 0;
-		String dest = null;
-		String message = null;
-		
-		for(int i=0; i<args.length; i++) {
-			if(args[i].startsWith("-")) {
-				String opt = args[i].substring(1);
-				if(opt.compareToIgnoreCase("sender") == 0) {
-					sender = args[++i];
-				} else if(opt.compareToIgnoreCase("senderTon") == 0) {
-					senderTon = Byte.parseByte(args[++i]);
-				} else if(opt.compareToIgnoreCase("senderNpi") == 0) {
-					senderNpi = Byte.parseByte(args[++i]);
-				} else if(opt.compareToIgnoreCase("dest") == 0) {
-					dest = args[++i];
-				} else if(opt.compareToIgnoreCase("destination") == 0) {
-					dest = args[++i];
-				} else if(opt.compareToIgnoreCase("message") == 0) {
-					message = args[++i];
-				} else if(opt.compareToIgnoreCase("file") == 0) {
-					propsFilePath = args[++i];
-				}
-			}
-		}
+		String sender = "VIVAS"; //brandname
+		byte senderTon = (byte) 1;
+		byte senderNpi = (byte) 1;
+		String dest = "84974920359";
+		String message = "Test Vivas";
+		int type = 1;//cskh 2:qc
+		long sendtime = 20211130101500L;//cskh 2:qc
+
+
+//		for(int i=0; i<args.length; i++) {
+//			if(args[i].startsWith("-")) {
+//				String opt = args[i].substring(1);
+//				if(opt.compareToIgnoreCase("sender") == 0) {
+//					sender = args[++i];
+//				} else if(opt.compareToIgnoreCase("senderTon") == 0) {
+//					senderTon = Byte.parseByte(args[++i]);
+//				} else if(opt.compareToIgnoreCase("senderNpi") == 0) {
+//					senderNpi = Byte.parseByte(args[++i]);
+//				} else if(opt.compareToIgnoreCase("dest") == 0) {
+//					dest = args[++i];
+//				} else if(opt.compareToIgnoreCase("destination") == 0) {
+//					dest = args[++i];
+//				} else if(opt.compareToIgnoreCase("message") == 0) {
+//					message = args[++i];
+//				} else if(opt.compareToIgnoreCase("file") == 0) {
+//					propsFilePath = args[++i];
+//				}
+//			}
+//		}
 
 		if((dest == null) || (message == null)) {
 			System.out.println("Usage: SMPPSender -dest <dest number on international format> -message <the message, within qoutes if contains whitespaces> [-sender <sender id> [-senderTon <sender ton>] [-senderNpi <sender npi>]]");
@@ -171,7 +174,7 @@ public class SMPPSender {
 			String d = st.nextToken();
 			destinations.add(d);
 		}
-		
+
 		System.out.println("Initialising...");
 		SMPPSender smppSender = null;
 		try {
@@ -188,7 +191,7 @@ public class SMPPSender {
 				Iterator<String> it = destinations.iterator();
 				while(it.hasNext()) {
 					String d = it.next();
-					smppSender.submit(d, message, sender, senderTon, senderNpi);
+					smppSender.submit(d, message, sender, senderTon, senderNpi,type,sendtime);
 				}
 				smppSender.unbind();
 			}
@@ -288,7 +291,7 @@ public class SMPPSender {
 	 * @see SubmitSM
 	 * @see SubmitSMResp
 	 */
-	private void submit(String destAddress, String shortMessage, String sender, byte senderTon, byte senderNpi) {
+	private void submit(String destAddress, String shortMessage, String sender, byte senderTon, byte senderNpi, int type,long sendtime) {
 		try {
 			SubmitSM request = new SubmitSM();
 			SubmitSMResp response;
@@ -306,7 +309,7 @@ public class SMPPSender {
 					senderTon = 5;
 					senderNpi = 0;
 				}
-					
+
 				if(senderTon == 5) {
 					request.setSourceAddr(new Address(senderTon, senderNpi, sender, 11));
 				} else {
@@ -332,9 +335,13 @@ public class SMPPSender {
 			request.setRegisteredDelivery(registeredDelivery);
 			request.setDataCoding(dataCoding);
 			request.setSmDefaultMsgId(smDefaultMsgId);
+			request.setType(type);
+			request.setSentTime(sendtime);
+
+			// --- chỉ log type để biết ---
+			System.out.println("Message type: " + type);
 
 			// send the request
-
 			request.assignSequenceNumber(true);
 			System.out.println("Submit request " + request.debugString());
 			response = session.submit(request);
@@ -345,6 +352,7 @@ public class SMPPSender {
 			System.out.println("Submit operation failed. " + e);
 		}
 	}
+
 
 	/**
 	 * Creates a new instance of <code>EnquireSM</code> class.

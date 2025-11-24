@@ -22,7 +22,7 @@ import org.smpp.Data;
 public class ValueNotSetException extends PDUException {
 	private static final long serialVersionUID = -4595064103809398438L;
 
-	public ValueNotSetException() {
+	public ValueNotSetException(String s) {
 		setErrorCode(Data.ESME_RMISSINGOPTPARAM);
 	}
 }

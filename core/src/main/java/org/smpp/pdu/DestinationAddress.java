@@ -84,7 +84,7 @@ public class DestinationAddress extends ByteData {
 			}
 			return buffer;
 		} else {
-			throw new ValueNotSetException();
+			throw new ValueNotSetException("Custom sentTime data too short.");
 		}
 	}
 

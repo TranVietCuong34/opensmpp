@@ -39,6 +39,22 @@ public class SubmitSM extends Request {
 	private short smLength = Data.DFLT_MSG_LEN;
 	private ShortMessage shortMessage = new ShortMessage(Data.SM_MSG_LEN);
 
+
+	// Thay thế
+// private int type = 0;
+// private long sentTime = 0;
+
+	// Bổ sung TLV cho biến custom
+	// Khai báo TLVOctets cho dữ liệu custom
+	private TLVOctets customType =
+			new TLVOctets(Data.OPT_PAR_CUSTOM_TYPE, 4, 4); // int = 4 bytes
+	private TLVOctets customSentTime =
+			new TLVOctets(Data.OPT_PAR_CUSTOM_SENT_TIME, 8, 8); // long = 8 bytes
+
+// Sử dụng các Tag ID custom (ví dụ: 0x1400 và 0x1401)
+// public static final short OPT_PAR_CUSTOM_TYPE = (short)0x1400;
+// public static final short OPT_PAR_CUSTOM_SENT_TIME = (short)0x1401; có lớp TLVLong
+
 	// optional parameters
 	private TLVShort userMessageReference = new TLVShort(Data.OPT_PAR_USER_MSG_REF);
 	private TLVShort sourcePort = new TLVShort(Data.OPT_PAR_SRC_PORT);
@@ -80,6 +96,102 @@ public class SubmitSM extends Request {
 	private TLVShort itsSessionInfo = new TLVShort(Data.OPT_PAR_ITS_SESSION_INFO);
 	private TLVByte ussdServiceOp = new TLVByte(Data.OPT_PAR_USSD_SER_OP);
 
+	public void setType(int value) {
+		ByteBuffer buffer = new ByteBuffer();
+
+		// Ghi 4 byte của int theo thứ tự Big-Endian
+		// Byte 4 (Quan trọng nhất)
+		buffer.appendByte((byte) (value >> 24));
+		// Byte 3
+		buffer.appendByte((byte) (value >> 16));
+		// Byte 2
+		buffer.appendByte((byte) (value >> 8));
+		// Byte 1 (Ít quan trọng nhất)
+		buffer.appendByte((byte) value);
+
+		customType.setValue(buffer);
+	}
+	public int getType() throws ValueNotSetException, NotEnoughDataInByteBufferException {
+		ByteBuffer buffer = customType.getValue();
+
+		// Đảm bảo buffer có đủ 4 byte
+		if (buffer.length() < 4) {
+			throw new ValueNotSetException("Custom type data too short.");
+		}
+
+		// Lấy 4 byte từ buffer (giả sử có phương thức get() hoặc removeByte/peekByte)
+		// Và kết hợp chúng thành int
+
+		// Giả sử có phương thức removeByte() hoặc peekByte(index)
+
+		int result = 0;
+
+		// Byte 4 (MSB)
+		result |= (buffer.removeByte() & 0xFF) << 24;
+		// Byte 3
+		result |= (buffer.removeByte() & 0xFF) << 16;
+		// Byte 2
+		result |= (buffer.removeByte() & 0xFF) << 8;
+		// Byte 1 (LSB)
+		result |= (buffer.removeByte() & 0xFF);
+
+		return result;
+	}
+
+	public void setSentTime(long value) {
+		ByteBuffer buffer = new ByteBuffer();
+
+		// Ghi 8 byte của long theo thứ tự Big-Endian
+		// Byte 8 (Quan trọng nhất)
+		buffer.appendByte((byte) (value >> 56));
+		// Byte 7
+		buffer.appendByte((byte) (value >> 48));
+		// Byte 6
+		buffer.appendByte((byte) (value >> 40));
+		// Byte 5
+		buffer.appendByte((byte) (value >> 32));
+		// Byte 4
+		buffer.appendByte((byte) (value >> 24));
+		// Byte 3
+		buffer.appendByte((byte) (value >> 16));
+		// Byte 2
+		buffer.appendByte((byte) (value >> 8));
+		// Byte 1 (Ít quan trọng nhất)
+		buffer.appendByte((byte) value);
+
+		customSentTime.setValue(buffer);
+	}
+
+	public long getSentTime() throws ValueNotSetException, NotEnoughDataInByteBufferException {
+		ByteBuffer buffer = customSentTime.getValue();
+
+		// Đảm bảo buffer có đủ 8 byte
+		if (buffer.length() < 8) {
+			throw new ValueNotSetException("Custom sentTime data too short.");
+		}
+
+		long result = 0;
+
+		// Lấy 8 byte và kết hợp chúng thành long
+		// Byte 8 (MSB)
+		result |= (long) (buffer.removeByte() & 0xFF) << 56;
+		// Byte 7
+		result |= (long) (buffer.removeByte() & 0xFF) << 48;
+		// Byte 6
+		result |= (long) (buffer.removeByte() & 0xFF) << 40;
+		// Byte 5
+		result |= (long) (buffer.removeByte() & 0xFF) << 32;
+		// Byte 4
+		result |= (long) (buffer.removeByte() & 0xFF) << 24;
+		// Byte 3
+		result |= (long) (buffer.removeByte() & 0xFF) << 16;
+		// Byte 2
+		result |= (long) (buffer.removeByte() & 0xFF) << 8;
+		// Byte 1 (LSB)
+		result |= (long) (buffer.removeByte() & 0xFF);
+
+		return result;
+	}
 	public SubmitSM() {
 		super(Data.SUBMIT_SM);
 
@@ -111,6 +223,10 @@ public class SubmitSM extends Request {
 		registerOptional(itsReplyType);
 		registerOptional(itsSessionInfo);
 		registerOptional(ussdServiceOp);
+
+		registerOptional(customType);
+		registerOptional(customSentTime);
+
 	}
 
 	protected Response createResponse() {

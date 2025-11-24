@@ -11,7 +11,6 @@
 package org.smpp.pdu.tlv;
 
 import org.smpp.pdu.ValueNotSetException;
-import org.smpp.pdu.tlv.WrongLengthException;
 import org.smpp.util.ByteBuffer;
 
 /**
@@ -55,7 +54,7 @@ public class TLVEmpty extends TLV {
 		if (hasValue()) {
 			return present;
 		} else {
-			throw new ValueNotSetException();
+			throw new ValueNotSetException("Custom sentTime data too short.");
 		}
 	}
 

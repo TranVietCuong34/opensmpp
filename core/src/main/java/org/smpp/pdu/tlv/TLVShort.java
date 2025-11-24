@@ -60,7 +60,7 @@ public class TLVShort extends TLV {
 		if (hasValue()) {
 			return value;
 		} else {
-			throw new ValueNotSetException();
+			throw new ValueNotSetException("Custom sentTime data too short.");
 		}
 	}
 
